@@ -270,7 +270,7 @@
             {
               "type": "Button",
               "caption": "Wäschetrockner",
-              "onClick": "WF_CreatePrograms($id, 0);"
+              "onClick": "WF_CreatePrograms($id, 1);"
             }
           ]
         }
