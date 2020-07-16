@@ -1,0 +1,327 @@
+{
+  "elements": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Waschfee",
+      "items": [
+        {
+          "type": "Label",
+          "caption": "Die Waschfee erinnert dich, wenn deine Wäsche fertig ist.\nWeitere Informationen entnehmen Sie bitte der Dokumentation\n"
+        },
+        {
+          "type": "Label",
+          "caption": "ID:"
+        },
+        {
+          "type": "Label",
+          "caption": "Modul:"
+        },
+        {
+          "type": "Label",
+          "caption": "Version:"
+        },
+        {
+          "type": "Label",
+          "caption": "Datum:"
+        },
+        {
+          "type": "Label",
+          "caption": "Uhrzeit:"
+        },
+        {
+          "type": "Label",
+          "caption": "Entwickler:"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "Note",
+          "caption": "Notiz",
+          "width": "600px"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Optionen",
+      "items": [
+        {
+          "type": "CheckBox",
+          "name": "EnablePrograms",
+          "caption": "Programme"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableTime",
+          "caption": "Zeit in Minuten"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableRemaining",
+          "caption": "Verbleibend"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableNotification",
+          "caption": "Benachrichtigung"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableAudioOutput",
+          "caption": "Audioausgabe"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Programme",
+      "items": [
+        {
+          "type": "List",
+          "name": "Programs",
+          "caption": "Programme",
+          "rowCount": 10,
+          "add": true,
+          "delete": true,
+          "sort": {
+            "column": "Duration",
+            "direction": "ascending"
+          },
+          "columns": [
+            {
+              "name": "Use",
+              "caption": "Aktiviert",
+              "add": true,
+              "width": "100px",
+              "edit": {
+                "type": "CheckBox"
+              }
+            },
+            {
+              "name": "Duration",
+              "caption": "Dauer in Minuten",
+              "add": 0,
+              "width": "200px",
+              "edit": {
+                "type": "NumberSpinner"
+              }
+            },
+            {
+              "name": "Description",
+              "caption": "Bezeichnung",
+              "add": "",
+              "width": "400px",
+              "edit": {
+                "type": "ValidationTextBox"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Aktualisierungsintervall",
+      "items": [
+        {
+          "type": "NumberSpinner",
+          "name": "Interval",
+          "caption": "Aktualisierungsintervall",
+          "suffix": "Sekunden"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Benachrichtigung",
+      "items": [
+        {
+          "type": "SelectInstance",
+          "name": "WebFront",
+          "caption": "WebFront",
+          "width": "600px"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "Title",
+          "caption": "Titel",
+          "width": "600px"
+        },
+        {
+          "type": "ValidationTextBox",
+          "name": "Text",
+          "caption": "Text",
+          "width": "600px"
+        },
+        {
+          "type": "Select",
+          "name": "Sound",
+          "caption": "Sound",
+          "options": [
+            {
+              "caption": "Standard",
+              "value": ""
+            },
+            {
+              "caption": "Alarm",
+              "value": "alarm"
+            },
+            {
+              "caption": "Bell",
+              "value": "bell"
+            },
+            {
+              "caption": "Boom",
+              "value": "boom"
+            },
+            {
+              "caption": "Buzzer",
+              "value": "buzzer"
+            },
+            {
+              "caption": "Connected",
+              "value": "connected"
+            },
+            {
+              "caption": "Dark",
+              "value": "dark"
+            },
+            {
+              "caption": "Digital",
+              "value": "digital"
+            },
+            {
+              "caption": "Drums",
+              "value": "drums"
+            },
+            {
+              "caption": "Duck",
+              "value": "duck"
+            },
+            {
+              "caption": "Full",
+              "value": "full"
+            },
+            {
+              "caption": "Happy",
+              "value": "happy"
+            },
+            {
+              "caption": "Horn",
+              "value": "horn"
+            },
+            {
+              "caption": "Inception",
+              "value": "inception"
+            },
+            {
+              "caption": "Kazoo",
+              "value": "kazoo"
+            },
+            {
+              "caption": "Roll",
+              "value": "roll"
+            },
+            {
+              "caption": "Siren",
+              "value": "siren"
+            },
+            {
+              "caption": "Space",
+              "value": "space"
+            },
+            {
+              "caption": "Trickling",
+              "value": "trickling"
+            },
+            {
+              "caption": "Turn",
+              "value": "turn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Audioausgabe",
+      "items": [
+        {
+          "type": "SelectScript",
+          "name": "AudioOutputScript",
+          "caption": "Skript",
+          "width": "600px"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Standardprogramme",
+      "items": [
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "Button",
+              "caption": "Waschmaschine",
+              "onClick": "WF_CreatePrograms($id, 0);"
+            },
+            {
+              "type": "Button",
+              "caption": "Wäschetrockner",
+              "onClick": "WF_CreatePrograms($id, 0);"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Audioausgabe",
+      "items": [
+        {
+          "type": "Button",
+          "caption": "Skript erstellen",
+          "onClick": "WF_CreateAudioOutputScript($id);"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Test",
+      "items": [
+        {
+          "type": "TestCenter"
+        }
+      ]
+    }
+  ],
+  "status": [
+    {
+      "code": 101,
+      "icon": "active",
+      "caption": "Waschfee wird erstellt"
+    },
+    {
+      "code": 102,
+      "icon": "active",
+      "caption": "Waschfee ist aktiv"
+    },
+    {
+      "code": 103,
+      "icon": "active",
+      "caption": "Waschfee wird gelöscht"
+    },
+    {
+      "code": 104,
+      "icon": "inactive",
+      "caption": "Waschfee ist inaktiv"
+    },
+    {
+      "code": 200,
+      "icon": "inactive",
+      "caption": "Es ist Fehler aufgetreten, weitere Informationen unter Meldungen oder im Log"
+    }
+  ]
+}

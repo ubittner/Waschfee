@@ -1,0 +1,12 @@
+{
+  "id": "{63983619-7F4D-FD9F-0A5A-92B63CCAE733}",
+  "name": "Waschfee",
+  "type": 3,
+  "vendor": "",
+  "aliases": [],
+  "parentRequirements": [],
+  "childRequirements": [],
+  "implemented": [],
+  "prefix": "WF",
+  "url": "https://github.com/ubittner/Waschfee"
+}
