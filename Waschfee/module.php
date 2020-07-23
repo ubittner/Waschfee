@@ -30,7 +30,7 @@ class Waschfee extends IPSModule
         // Never delete this line!
         parent::ApplyChanges();
         $this->StopTimer();
-        $this->SetValue('Active', false);
+        $this->SetValue('Timer', false);
         $this->UpdateProgramsProfile();
         $this->SetOptions();
     }
@@ -55,6 +55,11 @@ class Waschfee extends IPSModule
         return json_encode($formData);
     }
 
+    public function ReloadConfiguration()
+    {
+        $this->ReloadForm();
+    }
+
     public function CreatePrograms(int $DeviceType)
     {
         // Washing machine
@@ -66,7 +71,6 @@ class Waschfee extends IPSModule
             ['Use' => true, 'Duration' => 78, 'Description' => 'Automatik 40°'],
             ['Use' => true, 'Duration' => 109, 'Description' => 'Baumwolle 60°'],
             ['Use' => true, 'Duration' => 119, 'Description' => 'Baumwolle 50°']];
-
         // Tumble dryer
         if ($DeviceType == 1) {
             $preset = [
@@ -75,7 +79,6 @@ class Waschfee extends IPSModule
                 ['Use' => true, 'Duration' => 118, 'Description' => 'Baumwolle schonen'],
                 ['Use' => true, 'Duration' => 135, 'Description' => 'Automatik']];
         }
-
         IPS_SetProperty($this->InstanceID, 'Programs', json_encode($preset));
         if (IPS_HasChanges($this->InstanceID)) {
             IPS_ApplyChanges($this->InstanceID);
@@ -98,7 +101,7 @@ class Waschfee extends IPSModule
         $remaining = time() - $this->ReadAttributeInteger('TimerStarted');
         if ($remaining >= $this->GetValue('Time') * 60) {
             $this->SetTimerInterval('Timer', 0);
-            $this->SetValue('Active', false);
+            $this->SetValue('Timer', false);
             $this->SetValue('Remaining', 'Aus');
             $this->TriggerNotification();
             $this->TriggerAudioOutput();
@@ -113,19 +116,19 @@ class Waschfee extends IPSModule
     public function RequestAction($Ident, $Value)
     {
         switch ($Ident) {
-            case 'Active':
+            case 'Programs':
+                $this->SetValue($Ident, $Value);
+                $this->SetValue('Time', $Value);
+                $this->SetActive(true);
+                break;
+
+            case 'Timer':
                 $this->SetActive($Value);
                 break;
 
             case 'Time':
                 $this->SetValue($Ident, $Value);
                 $this->SetActive(false);
-                break;
-
-            case 'Programs':
-                $this->SetValue($Ident, $Value);
-                $this->SetValue('Time', $Value);
-                $this->SetActive(true);
                 break;
 
             case 'Notification':
@@ -138,26 +141,73 @@ class Waschfee extends IPSModule
 
     ########## Private
 
+    public function CreateBackup(int $BackupCategory)
+    {
+        if (IPS_GetInstance($this->InstanceID)['InstanceStatus'] == 102) {
+            $name = 'Konfiguration (' . IPS_GetName($this->InstanceID) . ' #' . $this->InstanceID . ') ' . date('d.m.Y H:i:s');
+            $config = IPS_GetConfiguration($this->InstanceID);
+            // Create backup
+            $content = "<?php\n// Backup " . date('d.m.Y, H:i:s') . "\n// " . $this->InstanceID . "\n$" . "config = '" . $config . "';";
+            $backupScript = IPS_CreateScript(0);
+            IPS_SetParent($backupScript, $BackupCategory);
+            IPS_SetName($backupScript, $name);
+            IPS_SetHidden($backupScript, true);
+            IPS_SetScriptContent($backupScript, $content);
+            echo 'Die Konfiguration wurde erfolgreich gesichert!';
+        }
+    }
+
+    public function RestoreConfiguration(int $ConfigurationScript)
+    {
+        if ($ConfigurationScript != 0 && IPS_ObjectExists($ConfigurationScript)) {
+            $object = IPS_GetObject($ConfigurationScript);
+            if ($object['ObjectType'] == 3) {
+                $content = IPS_GetScriptContent($ConfigurationScript);
+                preg_match_all('/\'([^\']+)\'/', $content, $matches);
+                $config = $matches[1][0];
+                IPS_SetConfiguration($this->InstanceID, $config);
+                if (IPS_HasChanges($this->InstanceID)) {
+                    IPS_ApplyChanges($this->InstanceID);
+                }
+            }
+            echo 'Die Konfiguration wurde erfolgreich wiederhergestellt!';
+        }
+    }
+
     private function RegisterProperties()
     {
         $this->RegisterPropertyString('Note', '');
+        // Actuator
+        $this->RegisterPropertyInteger('ActuatorState', 0);
+        $this->RegisterPropertyInteger('ActuatorPower', 0);
+        $this->RegisterPropertyInteger('ActuatorActualConsumption', 0);
+        $this->RegisterPropertyInteger('ActuatorTotalConsumption', 0);
+        // Options
+        $this->RegisterPropertyBoolean('EnableActuatorState', true);
         $this->RegisterPropertyBoolean('EnablePrograms', true);
+        $this->RegisterPropertyBoolean('EnableTimer', true);
         $this->RegisterPropertyBoolean('EnableTime', true);
         $this->RegisterPropertyBoolean('EnableRemaining', true);
         $this->RegisterPropertyBoolean('EnableNotification', true);
         $this->RegisterPropertyBoolean('EnableAudioOutput', true);
+        $this->RegisterPropertyBoolean('EnableActuatorPower', true);
+        $this->RegisterPropertyBoolean('EnableActuatorActualConsumption', true);
+        $this->RegisterPropertyBoolean('EnableActuatorTotalConsumption', true);
+        // Programs
         $this->RegisterPropertyString('Programs', '[]');
+        // Timer
         $this->RegisterPropertyInteger('Interval', 30);
+        // Notification
         $this->RegisterPropertyInteger('WebFront', 0);
         $this->RegisterPropertyString('Title', 'Waschfee');
         $this->RegisterPropertyString('Text', 'Die Wäsche ist fertig!');
         $this->RegisterPropertyString('Sound', '');
+        // Audio notification
         $this->RegisterPropertyInteger('AudioOutputScript', 0);
     }
 
     private function CreateProfiles()
     {
-        // Programs
         $profile = 'WF.' . $this->InstanceID . '.Programs';
         if (!IPS_VariableProfileExists($profile)) {
             IPS_CreateVariableProfile($profile, 1);
@@ -199,37 +249,137 @@ class Waschfee extends IPSModule
 
     private function RegisterVariables()
     {
-        $this->RegisterVariableBoolean('Active', 'Aktiv', '~Switch', 10);
-        $this->EnableAction('Active');
-
+        // Programs
         $profile = 'WF.' . $this->InstanceID . '.Programs';
         $this->RegisterVariableInteger('Programs', 'Programme', $profile, 20);
         $this->EnableAction('Programs');
-
-        $this->RegisterVariableInteger('Time', 'Zeit in Minuten', '', 30);
+        // Timer
+        $this->RegisterVariableBoolean('Timer', 'Timer', '~Switch', 30);
+        $this->EnableAction('Timer');
+        // Time
+        $this->RegisterVariableInteger('Time', 'Zeit in Minuten', '', 40);
         IPS_SetIcon($this->GetIDForIdent('Time'), 'Clock');
         $this->EnableAction('Time');
         $this->SetValue('Time', 60);
-
-        $this->RegisterVariableString('Remaining', 'Verbleibend', '', 40);
+        // Remaining
+        $this->RegisterVariableString('Remaining', 'Verbleibend', '', 50);
         IPS_SetIcon($this->GetIDForIdent('Remaining'), 'Clock');
-
-        $this->RegisterVariableBoolean('Notification', 'Benachrichtigung', '~Switch', 50);
+        // Notification
+        $this->RegisterVariableBoolean('Notification', 'Benachrichtigung', '~Switch', 60);
         IPS_SetIcon($this->GetIDForIdent('Notification'), 'Mobile');
         $this->EnableAction('Notification');
-
-        $this->RegisterVariableBoolean('AudioOutput', 'Audioausgabe', '~Switch', 60);
+        // Audio notification
+        $this->RegisterVariableBoolean('AudioOutput', 'Audioausgabe', '~Switch', 70);
         IPS_SetIcon($this->GetIDForIdent('AudioOutput'), 'Speaker');
         $this->EnableAction('AudioOutput');
     }
 
     private function SetOptions(): void
     {
+        // Actuator power
+        $targetID = $this->ReadPropertyInteger('ActuatorState');
+        $linkID = $this->GetLink('Power', $targetID);
+        if ($targetID != 0 && @IPS_ObjectExists($targetID)) {
+            if ($linkID == 0) {
+                $linkID = IPS_CreateLink();
+            }
+            IPS_SetParent($linkID, $this->InstanceID);
+            IPS_SetPosition($linkID, 10);
+            IPS_SetName($linkID, 'Power');
+            IPS_SetInfo($linkID, 'Power');
+            IPS_SetIcon($linkID, 'Power');
+            IPS_SetLinkTargetID($linkID, $targetID);
+        } else {
+            if ($linkID != 0) {
+                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorState'));
+            }
+        }
+        // Programs
         IPS_SetHidden($this->GetIDForIdent('Programs'), !$this->ReadPropertyBoolean('EnablePrograms'));
+        // Timer
+        IPS_SetHidden($this->GetIDForIdent('Timer'), !$this->ReadPropertyBoolean('EnableTimer'));
         IPS_SetHidden($this->GetIDForIdent('Time'), !$this->ReadPropertyBoolean('EnableTime'));
         IPS_SetHidden($this->GetIDForIdent('Remaining'), !$this->ReadPropertyBoolean('EnableRemaining'));
+        // Notification
         IPS_SetHidden($this->GetIDForIdent('Notification'), !$this->ReadPropertyBoolean('EnableNotification'));
+        // Audio notification
         IPS_SetHidden($this->GetIDForIdent('AudioOutput'), !$this->ReadPropertyBoolean('EnableAudioOutput'));
+        // Actuator power
+        $targetID = $this->ReadPropertyInteger('ActuatorPower');
+        $linkID = $this->GetLink('Aktuelle Leistung', $targetID);
+        if ($targetID != 0 && @IPS_ObjectExists($targetID)) {
+            if ($linkID == 0) {
+                $linkID = IPS_CreateLink();
+            }
+            IPS_SetParent($linkID, $this->InstanceID);
+            IPS_SetPosition($linkID, 80);
+            IPS_SetName($linkID, 'Aktuelle Leistung');
+            IPS_SetInfo($linkID, 'Aktuelle Leistung');
+            IPS_SetIcon($linkID, 'Electricity');
+            IPS_SetLinkTargetID($linkID, $targetID);
+        } else {
+            if ($linkID != 0) {
+                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorPower'));
+            }
+        }
+        // Current consumption
+        $targetID = $this->ReadPropertyInteger('ActuatorActualConsumption');
+        $linkID = $this->GetLink('Aktueller Verbrauch', $targetID);
+        if ($targetID != 0 && @IPS_ObjectExists($targetID)) {
+            if ($linkID == 0) {
+                $linkID = IPS_CreateLink();
+            }
+            IPS_SetParent($linkID, $this->InstanceID);
+            IPS_SetPosition($linkID, 90);
+            IPS_SetName($linkID, 'Aktueller Verbrauch');
+            IPS_SetInfo($linkID, 'Aktueller Verbrauch');
+            IPS_SetIcon($linkID, 'Electricity');
+            IPS_SetLinkTargetID($linkID, $targetID);
+        } else {
+            if ($linkID != 0) {
+                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorActualConsumption'));
+            }
+        }
+        // Total consumption
+        $targetID = $this->ReadPropertyInteger('ActuatorTotalConsumption');
+        $linkID = $this->GetLink('Gesamtverbrauch', $targetID);
+        if ($targetID != 0 && @IPS_ObjectExists($targetID)) {
+            if ($linkID == 0) {
+                $linkID = IPS_CreateLink();
+            }
+            IPS_SetParent($linkID, $this->InstanceID);
+            IPS_SetPosition($linkID, 100);
+            IPS_SetName($linkID, 'Gesamtverbrauch');
+            IPS_SetInfo($linkID, 'Gesamtverbrauch');
+            IPS_SetIcon($linkID, 'EnergyProduction');
+            IPS_SetLinkTargetID($linkID, $targetID);
+        } else {
+            if ($linkID != 0) {
+                IPS_SetHidden($linkID, true);
+                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorTotalConsumption'));
+            }
+        }
+    }
+
+    private function GetLink(string $LinkInfo, int $TargetID)
+    {
+        $linkID = 0;
+        $children = IPS_GetChildrenIDs($this->InstanceID);
+        if (!empty($children)) {
+            foreach ($children as $child) {
+                $type = IPS_GetObject($child)['ObjectType'];
+                if ($type === 6) {
+                    $info = IPS_GetObject($child)['ObjectInfo'];
+                    if ($info == $LinkInfo) {
+                        $target = IPS_GetLink($child)['TargetID'];
+                        if ($target == $TargetID) {
+                            $linkID = $child;
+                        }
+                    }
+                }
+            }
+        }
+        return $linkID;
     }
 
     private function SetActive($active)
@@ -239,7 +389,7 @@ class Waschfee extends IPSModule
         } else {
             $this->StopTimer();
         }
-        $this->SetValue('Active', $active);
+        $this->SetValue('Timer', $active);
     }
 
     private function StartTimer()

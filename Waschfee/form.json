@@ -46,8 +46,18 @@
       "items": [
         {
           "type": "CheckBox",
+          "name": "EnableActuatorState",
+          "caption": "Schaltzustand (Aus/An)"
+        },
+        {
+          "type": "CheckBox",
           "name": "EnablePrograms",
           "caption": "Programme"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableTimer",
+          "caption": "Timer (Aus/An)"
         },
         {
           "type": "CheckBox",
@@ -68,6 +78,47 @@
           "type": "CheckBox",
           "name": "EnableAudioOutput",
           "caption": "Audioausgabe"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableActuatorPower",
+          "caption": "Aktuelle Leistung (W)"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableActuatorActualConsumption",
+          "caption": "Aktueller Verbrauch (mA)"
+        },
+        {
+          "type": "CheckBox",
+          "name": "EnableActuatorTotalConsumption",
+          "caption": "Gesamtverbrauch (Wh)"
+        }
+      ]
+    },
+    {
+      "type": "ExpansionPanel",
+      "caption": "Schaltaktor",
+      "items": [
+        {
+          "type": "SelectVariable",
+          "name": "ActuatorState",
+          "caption": "Schaltzustand (STATE, Aus/An)"
+        },
+        {
+          "type": "SelectVariable",
+          "name": "ActuatorPower",
+          "caption": "Leistung (POWER, W)"
+        },
+        {
+          "type": "SelectVariable",
+          "name": "ActuatorActualConsumption",
+          "caption": "Aktueller Verbrauch (CURRENT, mA)"
+        },
+        {
+          "type": "SelectVariable",
+          "name": "ActuatorTotalConsumption",
+          "caption": "Gesamtverbrauch (ENERGY_COUNTER, Wh)"
         }
       ]
     },
@@ -120,7 +171,7 @@
     },
     {
       "type": "ExpansionPanel",
-      "caption": "Aktualisierungsintervall",
+      "caption": "Timer",
       "items": [
         {
           "type": "NumberSpinner",
@@ -255,6 +306,66 @@
     }
   ],
   "actions": [
+    {
+      "type": "ExpansionPanel",
+      "caption": "Konfiguration",
+      "items": [
+        {
+          "type": "Button",
+          "caption": "Neu einlesen",
+          "onClick": "WF_ReloadConfiguration($id);"
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectCategory",
+              "name": "BackupCategory",
+              "caption": "Kategorie",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "Button",
+              "caption": "Sichern",
+              "onClick": "WF_CreateBackup($id, $BackupCategory);"
+            }
+          ]
+        },
+        {
+          "type": "RowLayout",
+          "items": [
+            {
+              "type": "SelectScript",
+              "name": "ConfigurationScript",
+              "caption": "Konfigurationsskript",
+              "width": "600px"
+            },
+            {
+              "type": "Label",
+              "caption": " "
+            },
+            {
+              "type": "PopupButton",
+              "caption": "Wiederherstellen",
+              "popup": {
+                "caption": "Konfiguration wirklich wiederherstellen?",
+                "items": [
+                  {
+                    "type": "Button",
+                    "caption": "Wiederherstellen",
+                    "onClick": "WF_RestoreConfiguration($id, $ConfigurationScript);"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
     {
       "type": "ExpansionPanel",
       "caption": "Standardprogramme",
