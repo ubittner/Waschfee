@@ -47,7 +47,7 @@
         {
           "type": "CheckBox",
           "name": "EnableActuatorState",
-          "caption": "Schaltzustand (Aus/An)"
+          "caption": "Power (Aus/An)"
         },
         {
           "type": "CheckBox",

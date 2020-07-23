@@ -92,7 +92,7 @@ class Waschfee extends IPSModule
         $scriptContent = "<?php\n\n// Bose Switchboard\n\$instanceID = 12345;\n\$productID = '4aa8fe15-d16c-23ba-e42b-86dc75a3ed09';\n\$audioURL = 'http://192.168.0.123:3777/user/ansage/waschmaschine.mp3';\n\$volume = 30;\nBSBS_PlayAudioNotification(\$instanceID, \$productID, \$audioURL, \$volume);";
         IPS_SetScriptContent($scriptID, $scriptContent);
         IPS_SetParent($scriptID, $this->InstanceID);
-        IPS_SetPosition($scriptID, 100);
+        IPS_SetPosition($scriptID, 110);
         IPS_SetHidden($scriptID, true);
     }
 
@@ -289,10 +289,9 @@ class Waschfee extends IPSModule
             IPS_SetInfo($linkID, 'Power');
             IPS_SetIcon($linkID, 'Power');
             IPS_SetLinkTargetID($linkID, $targetID);
-        } else {
-            if ($linkID != 0) {
-                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorState'));
-            }
+        }
+        if ($linkID != 0) {
+            IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorState'));
         }
         // Programs
         IPS_SetHidden($this->GetIDForIdent('Programs'), !$this->ReadPropertyBoolean('EnablePrograms'));
@@ -317,10 +316,9 @@ class Waschfee extends IPSModule
             IPS_SetInfo($linkID, 'Aktuelle Leistung');
             IPS_SetIcon($linkID, 'Electricity');
             IPS_SetLinkTargetID($linkID, $targetID);
-        } else {
-            if ($linkID != 0) {
-                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorPower'));
-            }
+        }
+        if ($linkID != 0) {
+            IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorPower'));
         }
         // Current consumption
         $targetID = $this->ReadPropertyInteger('ActuatorActualConsumption');
@@ -335,10 +333,9 @@ class Waschfee extends IPSModule
             IPS_SetInfo($linkID, 'Aktueller Verbrauch');
             IPS_SetIcon($linkID, 'Electricity');
             IPS_SetLinkTargetID($linkID, $targetID);
-        } else {
-            if ($linkID != 0) {
-                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorActualConsumption'));
-            }
+        }
+        if ($linkID != 0) {
+            IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorActualConsumption'));
         }
         // Total consumption
         $targetID = $this->ReadPropertyInteger('ActuatorTotalConsumption');
@@ -353,11 +350,10 @@ class Waschfee extends IPSModule
             IPS_SetInfo($linkID, 'Gesamtverbrauch');
             IPS_SetIcon($linkID, 'EnergyProduction');
             IPS_SetLinkTargetID($linkID, $targetID);
-        } else {
-            if ($linkID != 0) {
-                IPS_SetHidden($linkID, true);
-                IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorTotalConsumption'));
-            }
+        }
+        if ($linkID != 0) {
+            IPS_SetHidden($linkID, true);
+            IPS_SetHidden($linkID, !$this->ReadPropertyBoolean('EnableActuatorTotalConsumption'));
         }
     }
 
