@@ -47,7 +47,7 @@
         {
           "type": "CheckBox",
           "name": "EnableActuatorState",
-          "caption": "Power (Aus/An)"
+          "caption": "Power"
         },
         {
           "type": "CheckBox",
@@ -57,7 +57,7 @@
         {
           "type": "CheckBox",
           "name": "EnableTimer",
-          "caption": "Timer (Aus/An)"
+          "caption": "Timer"
         },
         {
           "type": "CheckBox",
