@@ -103,22 +103,26 @@
         {
           "type": "SelectVariable",
           "name": "ActuatorState",
-          "caption": "Schaltzustand (STATE, Aus/An)"
+          "caption": "Aus / An (STATE)",
+          "width": "600px"
         },
         {
           "type": "SelectVariable",
           "name": "ActuatorPower",
-          "caption": "Leistung (POWER, W)"
+          "caption": "Leistung (POWER, W)",
+          "width": "600px"
         },
         {
           "type": "SelectVariable",
           "name": "ActuatorActualConsumption",
-          "caption": "Aktueller Verbrauch (CURRENT, mA)"
+          "caption": "Aktueller Verbrauch (CURRENT, mA)",
+          "width": "600px"
         },
         {
           "type": "SelectVariable",
           "name": "ActuatorTotalConsumption",
-          "caption": "Gesamtverbrauch (ENERGY_COUNTER, Wh)"
+          "caption": "Gesamtverbrauch (ENERGY_COUNTER, Wh)",
+          "width": "600px"
         }
       ]
     },
@@ -194,8 +198,7 @@
         {
           "type": "ValidationTextBox",
           "name": "Title",
-          "caption": "Titel",
-          "width": "600px"
+          "caption": "Titel"
         },
         {
           "type": "ValidationTextBox",
